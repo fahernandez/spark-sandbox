@@ -14,7 +14,6 @@ conf$spark.shuffle.service.enabled <- TRUE
 
 sc<-spark_connect(
   master = "spark://spark-master:7077",
-  spark_home="/home/rstudio/spark/spark-3.1.1-bin-hadoop3.2",
   app_name="RSpark",
   config=conf
 )

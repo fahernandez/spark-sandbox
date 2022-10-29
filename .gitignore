@@ -1,6 +1,6 @@
 python/.ipynb_checkpoints/
 python/__pycache__
+r/.local
+r/.config
 .idea
 .vscode
-.local
-.config

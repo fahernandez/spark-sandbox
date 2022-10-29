@@ -15,8 +15,8 @@ RUN apt-get update && \
     apt-get clean && \
     update-ca-certificates -f;
 
-ENV SPARK_VERSION=3.3.1
-ENV HADOOP_VERSION=3
+ENV SPARK_VERSION=3.1.1
+ENV HADOOP_VERSION=3.2
 
 # Setup JAVA_HOME -- used by spark
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
@@ -35,7 +35,11 @@ RUN Rscript -e "install.packages('shinydashboard')"
 RUN Rscript -e "install.packages('extrafont')"
 RUN Rscript -e "install.packages('SparkR')"
 RUN Rscript -e "install.packages('sparklyr')"
-RUN Rscript -e "library(sparklyr);spark_install(version='$SPARK_VERSION', hadoop_version='$HADOOP_VERSION')"
+RUN Rscript -e "library(sparklyr);options(spark.install.dir = '/home/');spark_install(version='$SPARK_VERSION', hadoop_version='$HADOOP_VERSION');"
+
+# Setup SPARK_HOME -- used by spark
+ENV SPARK_HOME /home/spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION
+RUN export SPARK_HOME
 
 ## httr authentication uses this port
 EXPOSE 8787

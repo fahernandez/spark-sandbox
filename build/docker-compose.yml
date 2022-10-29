@@ -7,7 +7,7 @@ services:
     image: data_analysis_python:1.0.0
     container_name: data_analysis_python
     volumes:
-      - ../python/:/home/data-analysis
+      - ../python/:/home/data-analysis/python
       - ../data:/home/data-analysis/data
     working_dir: /home/data-analysis
     ports:
@@ -35,7 +35,7 @@ services:
       - NB_UID=1000
       - NB_USER=data-analysis
     volumes:
-      - ../r/:/home/rstudio
+      - ../r/:/home/rstudio/r
       - ../data:/home/rstudio/data
     working_dir: /home/rstudio
     user: root
