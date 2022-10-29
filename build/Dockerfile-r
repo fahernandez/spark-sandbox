@@ -1,0 +1,42 @@
+FROM rocker/tidyverse:4.2.1
+
+# Run all following commands as root
+USER root
+
+# Install OpenJDK-8-needed for spark
+RUN apt-get update && \
+    apt-get install -y openjdk-8-jdk && \
+    apt-get install -y ant && \
+    apt-get clean;
+
+# Fix certificate issues
+RUN apt-get update && \
+    apt-get install ca-certificates-java && \
+    apt-get clean && \
+    update-ca-certificates -f;
+
+ENV SPARK_VERSION=3.3.1
+ENV HADOOP_VERSION=3
+
+# Setup JAVA_HOME -- used by spark
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+RUN export JAVA_HOME
+
+USER ${NB_UID}
+
+# Install packages
+RUN Rscript -e "install.packages('plotly')"
+RUN Rscript -e "install.packages('flexdashboard')"
+RUN Rscript -e "install.packages('highcharter')"
+RUN Rscript -e "install.packages('DT')"
+RUN Rscript -e "install.packages('lubridate')"
+RUN Rscript -e "install.packages('broom')"
+RUN Rscript -e "install.packages('shinydashboard')"
+RUN Rscript -e "install.packages('extrafont')"
+RUN Rscript -e "install.packages('SparkR')"
+RUN Rscript -e "install.packages('sparklyr')"
+RUN Rscript -e "library(sparklyr);spark_install(version='$SPARK_VERSION', hadoop_version='$HADOOP_VERSION')"
+
+## httr authentication uses this port
+EXPOSE 8787
+ENV HTTR_LOCALHOST 0.0.0.0

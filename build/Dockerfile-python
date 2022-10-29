@@ -1,0 +1,64 @@
+# https://github.com/jupyter/docker-stacks/blob/master/datascience-notebook/Dockerfile
+FROM jupyter/datascience-notebook:python-3.7
+
+# Add addons to jupyter installation
+RUN pip install jupyter_contrib_nbextensions
+RUN jupyter contrib nbextension install --user
+
+# Install the Dask dashboard
+RUN pip install dask-labextension
+RUN jupyter nbextension enable widgetsnbextension --py --sys-prefix
+# Install support for jupyterlab git
+RUN jupyter labextension install @jupyterlab/git
+RUN pip install --upgrade jupyterlab-git
+# Install support for plotly(it will require this version to run successfully)
+RUN jupyter labextension install jupyterlab-plotly
+RUN pip install "notebook>=5.3" "ipywidgets>=7.5"
+# System Monitor
+RUN pip install jupyterlab-system-monitor
+
+# Install spreadsheet extention for better excel reader capabilities
+RUN jupyter labextension install jupyterlab-spreadsheet
+
+# Run all following commands as root
+USER root
+
+# Install OpenJDK-8-needed for spark
+RUN apt-get update && \
+    apt-get install -y openjdk-8-jdk && \
+    apt-get install -y ant && \
+    apt-get clean;
+
+# Fix certificate issues
+RUN apt-get update && \
+    apt-get install ca-certificates-java && \
+    apt-get clean && \
+    update-ca-certificates -f;
+
+# Setup JAVA_HOME -- used by spark
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+RUN export JAVA_HOME
+
+USER ${NB_UID}
+
+# -------------------START----------------------
+# Install custom data-analysis environment
+RUN conda create --name data-analysis --clone base
+SHELL ["conda","run","-n","data-analysis","/bin/bash","-c"]
+RUN python -m ipykernel install --name data-analysis --display-name "Data Science Project" --user
+
+# Install requirements
+COPY requirements.txt /
+RUN pip install -U -r /requirements.txt
+
+# -------------------END----------------------
+
+# Dask Scheduler & Bokeh ports
+EXPOSE 8787
+EXPOSE 8786
+
+SHELL ["/bin/bash","-c"]
+RUN conda init
+RUN echo 'conda activate data-analysis' >> ~/.bashrc
+
+ENTRYPOINT ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root"]
